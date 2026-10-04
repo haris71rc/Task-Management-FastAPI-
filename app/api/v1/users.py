@@ -83,7 +83,7 @@ async def update_user(user_id: int, payload: UpdateUser, db: AsyncSession = Depe
         )
     return user
 
-@router.delete("/{user_id}", response_model=UserResponse, status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(user_id: int, db:AsyncSession = Depends(get_db)):
     stmt = select(User).where(User.id == user_id)
     result = await db.execute(stmt)
