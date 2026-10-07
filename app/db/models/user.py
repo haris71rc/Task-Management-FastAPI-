@@ -1,6 +1,7 @@
 from datetime import datetime
 from sqlalchemy import DateTime, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import BigInteger
 
 from app.db.base import Base
 from typing import TYPE_CHECKING
@@ -12,7 +13,7 @@ if TYPE_CHECKING:
 class User(Base):
     __tablename__ = "users"
     
-    id: Mapped[int] = mapped_column(primary_key= True)
+    id: Mapped[int] = mapped_column(BigInteger,primary_key= True)
     
     name: Mapped[str] = mapped_column(
         String(100),

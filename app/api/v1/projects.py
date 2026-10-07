@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from sqlalchemy.orm import joinedload, selectinload
+from app.services.project import ProjectService
 from app.db.models.project import Project
 from app.dependencies import get_db
-from app.schemas.project import ProjectListResponse
+from app.schemas.project import ProjectListResponse, ProjectDetailResponse, ProjectResponse, ProjectCreate
 
 router = APIRouter(
     prefix="/api/v1/projects",
@@ -59,5 +60,40 @@ async def get_projects(
         page_size=page_size,
         total=total
     )
+    
+@router.get("/{project_id}", response_model=ProjectDetailResponse)
+async def get_project(project_id: int, db: AsyncSession = Depends(get_db)):
+    stmt = (
+        select(Project)
+        .options(
+            joinedload(Project.owner),
+            selectinload(Project.tasks)
+        )
+        .where(Project.id == project_id)
+    )
+    
+    result = await db.execute(stmt)
+    project = result.scalar_one_or_none()
+    
+    if project is None:
+        raise HTTPException(
+            status_code= 404,
+            detail="Project not found"
+        )
+    
+    return project
+
+@router.post("/", response_model= ProjectResponse, status_code=status.HTTP_201_CREATED)
+async def create_project(payload: ProjectCreate, db: AsyncSession = Depends(get_db)):
+    service = ProjectService(db)
+    
+    project = await service.create_project(
+        name=payload.name,
+        description=payload.description,
+        owner_id=payload.owner_id
+    )
+    
+    return project
+        
     
     

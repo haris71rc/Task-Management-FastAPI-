@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING
-
+from sqlalchemy import BigInteger
 from sqlalchemy import DateTime , Enum as SQLEnum
 from sqlalchemy import ForeignKey, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column , relationship
@@ -26,7 +26,7 @@ class Task(Base):
     
     __tablename__ = "tasks"
     
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(BigInteger,primary_key=True)
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     
@@ -41,10 +41,12 @@ class Task(Base):
         default=TaskPriority.MEDIUM
     )
     project_id: Mapped[int] = mapped_column(
+        BigInteger,
         ForeignKey("projects.id"),
         nullable=False
     )
     created_by: Mapped[int] = mapped_column(
+        BigInteger,
         ForeignKey("users.id"),
         nullable=False
     )
