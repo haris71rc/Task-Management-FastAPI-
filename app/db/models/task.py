@@ -61,6 +61,10 @@ class Task(Base):
     creator: Mapped["User"] = relationship(
         back_populates="created_tasks",
     )
+    due_date: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True
+    )
     
     
     
