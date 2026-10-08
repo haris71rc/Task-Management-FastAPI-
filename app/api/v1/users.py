@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from app.core.security import hash_password
 from app.db.models.user import User
 from app.dependencies import get_db
 from app.schemas.user import UserCreate, UserResponse, UpdateUser
@@ -24,6 +24,7 @@ async def create_user(payload: UserCreate, db: AsyncSession = Depends(get_db)):
     user = User(
         name=payload.name,
         email=payload.email,
+        password_hash= hash_password(payload.password)
     )
     db.add(user)
     

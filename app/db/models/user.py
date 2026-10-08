@@ -32,6 +32,11 @@ class User(Base):
         server_default=func.now()
     )
     
+    password_hash: Mapped[str] = mapped_column(
+        String(255),
+        nullable=True
+    )
+    
     projects: Mapped[list["Project"]] = relationship(back_populates="owner")
     
     created_tasks: Mapped[list["Task"]] = relationship(back_populates="creator")
