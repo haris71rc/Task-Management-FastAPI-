@@ -6,6 +6,8 @@ from app.services.project import ProjectService
 from app.db.models.project import Project
 from app.dependencies import get_db
 from app.schemas.project import ProjectListResponse, ProjectDetailResponse, ProjectResponse, ProjectCreate
+from app.db.models.user import User
+from app.dependencies import get_current_user
 
 router = APIRouter(
     prefix="/api/v1/projects",
@@ -18,7 +20,8 @@ async def get_projects(
     page_size: int = Query(10, ge=1,le=100),
     owner_id: int | None = Query(None),
     search: str | None = Query(None),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     offset = (page-1) * page_size
     

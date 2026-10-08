@@ -1,0 +1,13 @@
+#!/bin/zsh
+cd "$(dirname "$0")" || exit 1
+
+case "${1:-}" in
+  dev)
+    source .venv/bin/activate
+    exec uvicorn app.main:app --reload
+    ;;
+  *)
+    echo "Usage: run dev" >&2
+    exit 1
+    ;;
+esac

@@ -6,3 +6,7 @@ class LoginRequest(BaseModel):
         min_length=8,
         max_length=128
     )
+    
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str

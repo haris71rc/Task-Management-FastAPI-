@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.schemas.auth import LoginRequest
+from app.schemas.auth import LoginRequest, LoginResponse
 from app.services.auth import AuthService
 from app.dependencies import get_db
+from app.core.security import create_access_token
 
 
 router = APIRouter(
@@ -19,9 +20,14 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
         password=payload.password
     )
     
-    return {
-        "message": "Login Successful",
-        "user_id": user.id,
-        "email": user.email
-    }
+    access_token = create_access_token(
+        user_id=user.id,
+        role= "USER"
+    )
+    
+    
+    return LoginResponse(
+        access_token=access_token,
+        token_type="bearer"
+    )
     
