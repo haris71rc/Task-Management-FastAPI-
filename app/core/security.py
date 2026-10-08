@@ -3,7 +3,7 @@ from pwdlib import PasswordHash
 password_hash = PasswordHash.recommended()
 
 def hash_password(password: str) -> str:
-    password_hash.hash(password)
+    return password_hash.hash(password)
     
 def verify_password(
     password: str,
