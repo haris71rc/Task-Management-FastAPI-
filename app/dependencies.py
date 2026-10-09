@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import AsyncSessionLocal
 from app.core.security import decode_access_token
 from app.repositories.user import UserRepository
-
+from app.db.models.user import User,UserRole
 
 security = HTTPBearer()
 
@@ -40,7 +40,7 @@ async def get_current_user(
     
     repository = UserRepository(db)
     
-    user = repository.get_by_id(user_id)
+    user = await repository.get_by_id(user_id)
     
     if user is None:
         raise HTTPException(
@@ -49,4 +49,16 @@ async def get_current_user(
         )
     
     return user
+ 
+async def require_admin(
+    current_user: User = Depends(get_current_user)
+) -> User:
+    
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Dont have sufficient permission"
+        )
+    
+    return current_user
     

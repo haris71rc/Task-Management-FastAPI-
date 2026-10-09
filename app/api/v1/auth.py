@@ -22,9 +22,8 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
     
     access_token = create_access_token(
         user_id=user.id,
-        role= "USER"
+        role= user.role.value
     )
-    
     
     return LoginResponse(
         access_token=access_token,
