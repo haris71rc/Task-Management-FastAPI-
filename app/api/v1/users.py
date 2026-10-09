@@ -3,14 +3,24 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import hash_password
-from app.db.models.user import User
-from app.dependencies import get_db
+from app.db.models.user import User,UserRole
+from app.dependencies import get_db, require_admin
 from app.schemas.user import UserCreate, UserResponse, UpdateUser
 
 router = APIRouter(
     prefix="/api/v1/users",
     tags=["Users"]
 )
+
+@router.get("/admin-only")
+async def admin_only(
+    current_user: User = Depends(require_admin)
+):
+    return {
+        "message": "Admin access granted",
+        "user_id": current_user.id,
+        "role":current_user.role.value
+    }
 
 @router.get("/",response_model= list[UserResponse])
 async def get_users(db: AsyncSession = Depends(get_db)):
@@ -24,7 +34,8 @@ async def create_user(payload: UserCreate, db: AsyncSession = Depends(get_db)):
     user = User(
         name=payload.name,
         email=payload.email,
-        password_hash= hash_password(payload.password)
+        password_hash= hash_password(payload.password),
+        role= UserRole.USER
     )
     db.add(user)
     
@@ -107,3 +118,4 @@ async def delete_user(user_id: int, db:AsyncSession = Depends(get_db)):
             detail="User cannot be deleted because related records exist",
         )
         
+
