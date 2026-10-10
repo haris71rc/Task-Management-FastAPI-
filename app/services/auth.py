@@ -1,5 +1,5 @@
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import select, update, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositories.user import UserRepository
 from app.db.models.user import User
@@ -14,6 +14,7 @@ from app.core.security import (
 from app.db.models.refresh_token import RefreshToken
 from app.repositories.refresh_token import RefreshTokenRepository
 from app.schemas.auth import TokenResponse
+import uuid
 
 
 class AuthService:
@@ -56,9 +57,13 @@ class AuthService:
 
         try:
             access_token = create_access_token(user_id=user.id, role=user.role.value)
+            family_id = uuid.uuid4()
 
             await self.refresh_token_repository.create(
-                user_id=user.id, token_hash=token_hash, expires_at=expires_at
+                user_id=user.id,
+                token_hash=token_hash,
+                expires_at=expires_at,
+                family_id=family_id,
             )
 
             await self.db.commit()
@@ -77,6 +82,18 @@ class AuthService:
         token_hash = hash_refresh_token(raw_token)
 
         try:
+            # First lookup: discover which family owns this token.
+            initial_token = await self.refresh_token_repository.get_by_hash(token_hash)
+
+            if initial_token is None:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid refresh token",
+                )
+
+            # Serialize all operations for this family.
+            await self._lock_refresh_family(initial_token.family_id)
+
             stored_token = await self.refresh_token_repository.get_by_hash_for_update(
                 token_hash
             )
@@ -91,6 +108,18 @@ class AuthService:
 
             # A previously consumed or revoked token must not be reused.
             if stored_token.revoked_at is not None:
+                # A previously revoked token has been presented again.
+                # Revoke every still-active token in this login session.
+                await self.db.execute(
+                    update(RefreshToken)
+                    .where(
+                        RefreshToken.family_id == stored_token.family_id,
+                        RefreshToken.revoked_at.is_(None),
+                    )
+                    .values(revoked_at=now)
+                )
+                await self.db.commit()
+
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Invalid refresh token",
@@ -124,6 +153,7 @@ class AuthService:
                 user_id=user.id,
                 token_hash=new_hash,
                 expires_at=now + timedelta(days=settings.refresh_token_expire_days),
+                family_id=stored_token.family_id,
             )
 
             self.db.add(replacement)
@@ -156,12 +186,30 @@ class AuthService:
                 token_hash=token_hash
             )
 
-            if stored_token is not None and stored_token.revoked_at is None:
-                stored_token.revoked_at = datetime.now(timezone.utc)
-                await self.db.flush()
+            if stored_token is not None:
+                now = datetime.now(timezone.utc)
+
+                await self.db.execute(
+                    update(RefreshToken)
+                    .where(
+                        RefreshToken.family_id == stored_token.family_id,
+                        RefreshToken.revoked_at.is_(None),
+                    )
+                    .values(revoked_at=now)
+                )
 
             await self.db.commit()
 
         except Exception:
             await self.db.rollback()
             raise
+
+    async def _lock_refresh_family(self, family_id: uuid.UUID) -> None:
+        await self.db.execute(
+            text("""
+            SELECT pg_advisory_xact_lock(
+                hashtextextended(:family_id, 0)
+            )
+            """),
+            {"family_id": str(family_id)},
+        )

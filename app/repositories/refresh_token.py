@@ -2,6 +2,7 @@ from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models.refresh_token import RefreshToken
 from sqlalchemy import select
+import uuid
 
 class RefreshTokenRepository:
     
@@ -12,13 +13,15 @@ class RefreshTokenRepository:
         self,
         user_id: int,
         token_hash: str,
-        expires_at: datetime
+        expires_at: datetime,
+        family_id: uuid.UUID,
     ) -> RefreshToken:
         
         token = RefreshToken(
             user_id= user_id,
             token_hash=token_hash,
-            expires_at=expires_at
+            expires_at=expires_at,
+            family_id=family_id,
         )
         
         self.db.add(token)
@@ -32,5 +35,10 @@ class RefreshTokenRepository:
         result = await self.db.execute(stmt)
         
         return result.scalar_one_or_none()
-           
+    
+    async def get_by_hash(self,token_hash: str) -> RefreshToken | None:
+        stmt = select(RefreshToken).where(RefreshToken.token_hash == token_hash)
+        
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()       
         
