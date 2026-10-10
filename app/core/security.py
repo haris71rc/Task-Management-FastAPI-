@@ -1,6 +1,8 @@
 from pwdlib import PasswordHash
 from datetime import datetime, timedelta, timezone
 import jwt
+import hashlib
+import secrets
 from app.core.config import settings
 from fastapi import HTTPException,status
 
@@ -60,3 +62,11 @@ def decode_access_token(token: str) -> dict:
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication credentials"
         )
+
+def generate_refresh_token() -> str:
+    return secrets.token_urlsafe(48)
+
+def hash_refresh_token(token: str) ->str:
+    return hashlib.sha256(
+        token.encode("utf-8")
+    ).hexdigest()
