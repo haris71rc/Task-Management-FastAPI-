@@ -1,8 +1,10 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
-from sqlalchemy import BigInteger, DateTime, ForeignKey, Index, String, func
+from sqlalchemy import BigInteger, DateTime, ForeignKey, Index, String, func, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
+import uuid
+
 
 if TYPE_CHECKING:
     from app.db.models.user import User
@@ -43,3 +45,9 @@ class RefreshToken(Base):
     )
 
     user: Mapped["User"] = relationship()
+    
+    family_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True),
+        nullable=False,
+        index=True
+    )
