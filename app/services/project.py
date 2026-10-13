@@ -1,5 +1,5 @@
 import json
-
+import uuid
 from fastapi import HTTPException, status
 from redis.exceptions import RedisError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,6 +9,7 @@ from app.db.models.project import Project
 from app.repositories.project import ProjectRepository
 from app.repositories.user import UserRepository
 from app.schemas.project import ProjectListResponse, ProjectResponse
+from app.db.models.outbox_event import OutboxEvent
 
 
 class ProjectService:
@@ -117,6 +118,20 @@ class ProjectService:
 
         try:
             await self.project_repository.create(project)
+            
+            await self.db.flush()
+            
+            event = OutboxEvent(
+                id= uuid.uuid4,
+                event_type= "project.created",
+                payload = {
+                    "project_id" : project.id,
+                    "recipient_email": user.email,
+                },
+                idempotency_key=f"project-created:{project.id}",
+            )
+            await self.db.add(event)
+            
             await self.db.commit()
             await self.db.refresh(project)
         except Exception:
