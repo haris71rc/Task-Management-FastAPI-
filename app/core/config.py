@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     celery_broker_url: str = "redis://localhost:6379/1"
     celery_result_backend: str = "redis://localhost:6379/2"
+    aws_region: str = "ap-southeast-2"
+    s3_bucket_name: str
+    aws_access_key_id: str | None = None
+    aws_secret_access_key: str | None = None
     
     model_config = SettingsConfigDict(
         env_file=".env",
