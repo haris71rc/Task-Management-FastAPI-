@@ -85,10 +85,10 @@ class ProjectService:
 
         return response
 
-    async def get_project(self, project_id: int) -> Project:
+    async def get_project(self, project_id: int, user_id: int) -> Project:
         project = await self.project_repository.get_detail(project_id)
 
-        if project is None:
+        if project is None or project.owner_id != user_id:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Project not found",
@@ -122,7 +122,7 @@ class ProjectService:
             await self.db.flush()
             
             event = OutboxEvent(
-                id= uuid.uuid4,
+                id= uuid.uuid4(),
                 event_type= "project.created",
                 payload = {
                     "project_id" : project.id,
@@ -130,7 +130,7 @@ class ProjectService:
                 },
                 idempotency_key=f"project-created:{project.id}",
             )
-            await self.db.add(event)
+            self.db.add(event)
             
             await self.db.commit()
             await self.db.refresh(project)

@@ -4,8 +4,8 @@ from app.db.models.task import TaskPriority, TaskStatus
 class ProjectCreate(BaseModel):
     name: str
     description: str | None = None
-    owner_id: int
-    
+
+
 class ProjectResponse(BaseModel):
     id: int
     name: str
@@ -32,7 +32,7 @@ class ProjectTaskResponse(BaseModel):
 class ProjectDetailResponse(BaseModel):
     id: int
     name:str
-    description:str
+    description: str | None
     owner: ProjectOwnerResponse
     tasks: list[ProjectTaskResponse]
     
@@ -44,9 +44,4 @@ class ProjectListResponse(BaseModel):
     page: int
     page_size: int
     total: int
-    
-class ProjectCreate(BaseModel):
-    name: str
-    description: str | None
-    owner_id: int  
     

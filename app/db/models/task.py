@@ -45,7 +45,7 @@ class Task(Base):
         ForeignKey("projects.id"),
         nullable=False
     )
-    created_by: Mapped[int] = mapped_column(
+    owner_id: Mapped[int] = mapped_column(
         BigInteger,
         ForeignKey("users.id"),
         nullable=False

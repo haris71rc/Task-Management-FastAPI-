@@ -41,19 +41,21 @@ async def get_projects(
 async def get_project(
     project_id: int,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     service = ProjectService(db)
-    return await service.get_project(project_id)
+    return await service.get_project(project_id, current_user.id)
 
 
 @router.post("/", response_model=ProjectResponse, status_code=status.HTTP_201_CREATED)
 async def create_project(
     payload: ProjectCreate,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     service = ProjectService(db)
     return await service.create_project(
         name=payload.name,
         description=payload.description,
-        owner_id=payload.owner_id,
+        owner_id=current_user.id,
     )
