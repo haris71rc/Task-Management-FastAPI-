@@ -4,6 +4,7 @@ from app.db.models.task import Task, TaskPriority, TaskStatus
 from app.db.models.refresh_token import RefreshToken
 from app.db.models.outbox_event import OutboxEvent
 from app.db.models.processed_event import ProcessedEvent
+from app.db.models.attachment import Attachment
 
 __all__ = [
     "User",
@@ -14,4 +15,5 @@ __all__ = [
     "RefreshToken",
     "OutboxEvent",
     "ProcessedEvent"
+    "Attachment"
     ]
