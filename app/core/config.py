@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     s3_bucket_name: str
     aws_access_key_id: str | None = None
     aws_secret_access_key: str | None = None
+    firebase_credentials_path: str
     
     model_config = SettingsConfigDict(
         env_file=".env",

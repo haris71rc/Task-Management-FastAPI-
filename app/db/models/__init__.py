@@ -5,6 +5,7 @@ from app.db.models.refresh_token import RefreshToken
 from app.db.models.outbox_event import OutboxEvent
 from app.db.models.processed_event import ProcessedEvent
 from app.db.models.attachment import Attachment
+from app.db.models.device import Device, DevicePlatform
 
 __all__ = [
     "User",
@@ -14,6 +15,8 @@ __all__ = [
     "TaskPriority",
     "RefreshToken",
     "OutboxEvent",
-    "ProcessedEvent"
-    "Attachment"
-    ]
+    "ProcessedEvent",
+    "Attachment",
+    "Device",
+    "DevicePlatform",
+]

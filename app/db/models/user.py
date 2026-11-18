@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from app.db.models.project import Project
     from app.db.models.task import Task
+    from app.db.models.device import Device
 
 class UserRole(str,Enum):
     ADMIN="ADMIN"
@@ -58,4 +59,6 @@ class User(Base):
     projects: Mapped[list["Project"]] = relationship(back_populates="owner")
     
     created_tasks: Mapped[list["Task"]] = relationship(back_populates="creator")
+    
+    devices: Mapped[list["Device"]] = relationship(back_populates="user",cascade="all, delete-orphan",)
     

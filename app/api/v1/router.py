@@ -7,6 +7,7 @@ from app.api.v1.attachments import router as attachments_router
 from app.api.v1.attachment_downloads import router as downloads_router
 from app.api.v1.websocket import router as websocket_router
 from app.api.v1.streaming_response import router as streaming_router
+from app.api.v1.notifications import router as notifications_router
 
 
 router = APIRouter()
@@ -25,6 +26,11 @@ router.include_router(
 
 router.include_router(
     attachments_router,
+    prefix="/api/v1",
+)
+
+router.include_router(
+    notifications_router,
     prefix="/api/v1",
 )
 
