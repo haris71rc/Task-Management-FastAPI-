@@ -9,6 +9,9 @@ from app.schemas.device import (
 )
 from app.services.device import DeviceService
 
+from app.schemas.notification import NotificationTestRequest
+from app.services.notification import NotificationService
+
 router = APIRouter(
     prefix="/notifications",
     tags= ["Notifications"]
@@ -43,4 +46,17 @@ async def delete_device(
     
     return DeviceDeleteResponse(
         message="Device deleted successfully",
+    )
+
+@router.post("/test")
+async def send_test_notification(
+    payload: NotificationTestRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    service = NotificationService(db)
+    
+    return await service.send_to_user(
+        user_id=current_user.id,
+        payload=payload
     )
